@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# License MIT (c) Lucian I. Last
+# https://github.com/lil5/smallergallery/blob/master/LICENSE
+
 function run_version() {
   function requirements() {
     command -v $1 >/dev/null 2>&1 || { echo >&2 "Requires $1 but it's not installed.  Aborting."; exit 1; }
