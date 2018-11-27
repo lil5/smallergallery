@@ -1,0 +1,75 @@
+#!/bin/bash
+
+function run_version() {
+  function requirements() {
+    command -v $1 >/dev/null 2>&1 || { echo >&2 "Requires $1 but it's not installed.  Aborting."; exit 1; }
+  }
+  echo 'smallergallery 1.0.0'
+
+  requirements convert
+  requirements find
+  requirements pushd
+  requirements realpath
+  requirements mkdir
+  requirements read
+  requirements dirname
+  requirements rsync
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -i|--in)
+    IN_PATH="$2"
+    shift
+    shift
+    ;;
+    -o|--out)
+    OUT_PATH="$2"
+    shift
+    shift
+    ;;
+    -w|--width)
+    WIDTH="$2"
+    shift
+    shift
+    ;;
+    -v|--version)
+    run_version
+    exit 0
+    ;;
+  esac
+done
+
+if [[ -z "$WIDTH" ]]; then
+  WIDTH=80
+fi
+if [[ -z "$IN_PATH" ]]; then
+  IN_PATH=original/
+elif [[ "${IN_PATH: -1}" != '/' ]]; then
+  IN_PATH="${IN_PATH}/"
+fi
+if [[ -z "$OUT_PATH" ]]; then
+  OUT_PATH="gallery/"
+fi
+
+OUT_PATH="$(realpath $OUT_PATH)"
+
+pushd $IN_PATH
+
+  IMAGE_EXTS=( 'jpg' 'jpeg' 'png' )
+  for i in ${IMAGE_EXTS[@]}; do
+
+    while IFS= read -rd '' f; do
+
+      DIR_PATH=$(dirname "${OUT_PATH}/${f}")
+      mkdir "$DIR_PATH" &> /dev/null
+      if ! [[ -f "${OUT_PATH}/${f%.${i}}.${i}" ]]; then
+        convert ./"$f" -resize ${WIDTH}x\> "${OUT_PATH}/${f%.${i}}.${i}"
+      fi
+
+    done < <(find . -type f -iname "*.${i}" -print0)
+
+  done
+  rsync --ignore-existing --delete -ruvh . $OUT_PATH
+
+popd
