@@ -70,9 +70,9 @@ pushd $IN_PATH
         convert ./"$f" -resize ${WIDTH}x\> "${OUT_PATH}/${f%.${i}}.${i}"
       fi
 
-    done < <(find . -type f -iname "*.${i}" -print0)
+    done < <(find -L . -type f -iname "*.${i}" -print0)
 
   done
-  rsync --ignore-existing --delete -ruvh . $OUT_PATH
+  rsync --ignore-existing --delete -ruvhL . $OUT_PATH
 
 popd
